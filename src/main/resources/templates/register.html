@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription - Research Center</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body style="display: flex; justify-content: center; align-items: center;">
+
+    <div class="glass-card" style="width: 100%; max-width: 450px;">
+        <h2 style="text-align: center;">Créer un compte</h2>
+
+        <form id="registerForm">
+            <div class="grid-2" style="gap: 1rem;">
+                <div class="form-group">
+                    <label>Prénom</label>
+                    <input type="text" name="firstName" required>
+                </div>
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" name="lastName" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label> Domaine de Recherche</label>
+                <select name="researchDomainIds" id="domainSelect" required multiple
+                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; background: rgba(255, 255, 255, 0.9); height: 100px;">
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Nom d'utilisateur</label>
+                <input type="text" name="username" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" name="password" required>
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%;">S'inscrire</button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1rem;">
+            <a href="/login" style="color: var(--primary-color);">Déjà un compte ? Se connecter</a>
+        </div>
+    </div>
+
+    <script>
+        // Load Research Domains
+        fetch('/api/public/domains')
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById('domainSelect');
+                data.forEach(d => {
+                    const option = document.createElement('option');
+                    option.value = d.id;
+                    option.textContent = d.name;
+                    select.appendChild(option);
+                });
+            })
+            .catch(err => console.error('Error loading domains:', err));
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            // Handle multiple select
+            const domainSelect = document.getElementById('domainSelect');
+            const selectedDomains = Array.from(domainSelect.selectedOptions).map(option => option.value);
+
+            const data = Object.fromEntries(formData.entries());
+            data.researchDomainIds = selectedDomains;
+
+            try {
+                const res = await fetch('/api/users/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    alert('Compte créé avec succès ! Connectez-vous.');
+                    window.location.href = '/login';
+                } else {
+                    const msg = await res.text();
+                    alert('Erreur: ' + msg);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erreur lors de l\'inscription');
+            }
+        });
+    </script>
+</body>
+
+</html>

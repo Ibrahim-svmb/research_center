@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Research Center - Accueil</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 5rem 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .project-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: #e3f2fd;
+            color: #1976d2;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">ResearchCenter</a>
+        <div>
+            <a href="/login" class="btn">Se connecter</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1>Innover pour l'Avenir</h1>
+        <p>
+            Bienvenue sur la plateforme de gestion des projets de recherche.
+            Notre but est de faciliter la collaboration entre chercheurs,
+            la gestion transparente des projets et la diffusion des connaissances.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="/register" class="btn" style="background: var(--secondary-color);">Rejoindre en tant que
+                chercheur</a>
+            <a href="#projects" class="btn"
+                style="background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color);">Voir
+                les projets</a>
+        </div>
+    </div>
+
+    <div id="projects" style="padding: 2rem; background: rgba(255,255,255,0.5);">
+        <h2 style="text-align: center; margin-bottom: 3rem;">Projets Récents</h2>
+
+        <div class="features">
+            <div th:each="project : ${projects}" class="project-card">
+                <span class="project-status" th:text="${project.status}">En Cours</span>
+                <h3 th:text="${project.titre_projet}">Projet Alpha</h3>
+                <p th:text="${project.description}">Description du projet...</p>
+                <div style="margin-top: 1rem; font-size: 0.9rem; color: #888;">
+                    <span th:text="${project.researchDomain != null ? project.researchDomain.name : '-'}">IA</span>
+                </div>
+            </div>
+
+            <div th:if="${projects == null or projects.empty}"
+                style="grid-column: 1/-1; text-align: center; color: #666;">
+                <p>Aucun projet public pour le moment.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 2rem; color: #666; margin-top: 2rem;">
+        <p>&copy; 2026 Research Center. Tous droits réservés.</p>
+    </footer>
+
+</body>
+
+</html>

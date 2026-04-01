@@ -1,0 +1,19 @@
+budget_estime,date_debut,date_fin,niveau_avancement,project_id,research_domain_id,responsable_id,decription,institution,status,titre_projet
+20000,2021-01-12,2026-03-28,98,2,1,2,Étude des marqueurs génétiques liés aux troubles de l'attention chez l'enfant.,Clinique du Cap,EN_COURS,Génomique Cognitive
+30000,2026-01-05,2026-10-30,14,6,3,3,Analyse de l'impact de la latence réseau sur les transactions haute fréquence.,Banque Mondiale,EN_COURS,Algorithmes de Trading
+9500,2028-03-06,2029-07-26,0,7,4,3,Développement de cadres de vélos ultra-légers à partir de carbone recyclé.,Décathlon,EN_COURS,Matériaux Composites
+25000,2024-07-26,2026-07-28,78,10,2,4,Recherche sur le filtrage dynamique des payloads XSS via le Machine Learning.,ESMT,EN_COURS,Sécurité Web & XSS
+14000,2029-03-07,2030-11-29,0,14,4,4,Étude des réflexes et de la fatigue mentale lors de compétitions professionnelles.,Sports Club,EN_COURS,E-sport & Cognition
+17000,2026-11-16,2028-09-19,0,15,4,5,Impact du froid extrême sur la régénération musculaire après l'effort intense.,Centre de rééducation,EN_COURS,Récupération Cryogénique
+2000,2027-03-16,2027-10-12,0,17,5,6,Étude de la capacité de stockage de CO2 des forêts de mangroves.,Eaux et Forêts,EN_COURS,Captation de Carbone
+16000,2027-05-28,2029-12-21,0,18,5,6,Optimisation du rendement des hydroliennes en fonction des courants de marée.,Sangomar,EN_COURS,Énergies Marines
+22000,2018-05-10,2021-07-16,100,16,3,5,Étude de l'impact des solutions de paiement mobile sur le développement local.,Banque Mondiale,TERMINE,Microcrédit Rural
+8000,2024-06-04,2025-08-05,100,1,1,2,Développement d'un algorithme de pré-diagnostic pour les zones rurales isolées.,Institut Pasteur,TERMINE,IA et Télémédecine
+7500,2024-06-18,2024-11-06,100,3,5,2,Système de filtration naturelle des eaux grises pour l'arrosage urbain.,Suez,TERMINE,Recyclage de l'Eau
+3000,2023-05-16,2025-09-16,100,4,5,3,Optimisation du code de traitement de données pour réduire l'empreinte carbone.,Ademe,TERMINE,Green IT & PySpark
+200000,2020-02-12,2024-12-24,100,9,1,3,Utilisation de nanoparticules pour cibler précisément les cellules cancéreuses.,Hôpital Principal,TERMINE,Nanotechnologies
+4300,2024-02-11,2024-09-16,100,12,2,4,Analyse des vulnérabilités des tokens stateless dans les environnements Cloud.,ANSSI,TERMINE,Authentification JWT
+30000,2027-08-13,2028-09-18,0,11,2,4,Standardisation des flux ETL pour le traitement massif de données bancaires.,EPT,SUSPENDU,Data Engineering Talend
+18000,2026-02-05,2028-07-18,1,13,4,4,Utilisation de capteurs IoT pour prévenir les blessures chez les marathoniens.,INSEP,SUSPENDU,Analyse de la Foulée
+5000,2026-02-26,2027-10-12,0,5,3,3,Utilisation du registre distribué pour automatiser la certification des comptes.,HEC,SUSPENDU,Blockchain & Audit
+2700,2027-06-11,2028-12-11,0,8,2,3,Automatisation des tests de régression sur des architectures Microservices Spring.,Ecole Polytechnique,SUSPENDU,Optimisation QA & CI/CD

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab-btn {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            opacity: 0.6;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            opacity: 1;
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: white;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .status-badge.EN_COURS {
+            background-color: #3498db;
+        }
+
+        .status-badge.TERMINE {
+            background-color: #2ecc71;
+        }
+
+        .status-badge.SUSPENDU {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Bonjour <span id="headerFirstName">Administrateur</span></h1>
+            <button class="btn" style="background: #e74c3c;" onclick="location.href='/logout'">Déconnexion</button>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('home')">Vue Système</button>
+            <button class="tab-btn" onclick="openTab('domains')">Gestion Domaines</button>
+            <button class="tab-btn" onclick="openTab('users')">Contrôle d'Accès</button>
+        </div>
+
+        <div id="home" class="tab-content active">
+            <div class="glass-card">
+                <h2>Statistiques Système</h2>
+                <div id="globalStats"
+                    style="display:flex; justify-content:space-around; font-size:1.2rem; margin-bottom: 2rem;"></div>
+            </div>
+            <div class="grid-2">
+                <div class="glass-card">
+                    <h3>Projets par Domaine</h3>
+                    <div class="chart-container"><canvas id="domainChart"></canvas></div>
+                </div>
+                <div class="glass-card">
+                    <h3>Statut des Projets</h3>
+                    <div class="chart-container"><canvas id="statusChart"></canvas></div>
+                </div>
+                <div class="glass-card">
+                    <h3>Charge Participants</h3>
+                    <div class="chart-container"><canvas id="loadChart"></canvas></div>
+                </div>
+                <div class="glass-card">
+                    <h3>Évolution</h3>
+                    <div class="chart-container"><canvas id="evolutionChart"></canvas></div>
+                </div>
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h2>Liste des Projets</h2>
+                        <div>
+                            <input type="file" id="csvFile" style="display:none" onchange="uploadCsv()">
+                            <button class="btn" style="background:#2ecc71;"
+                                onclick="document.getElementById('csvFile').click()">Importer CSV</button>
+                        </div>
+                    </div>
+                    <div id="projectsTable"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="domains" class="tab-content">
+            <div class="grid-2">
+                <div class="glass-card">
+                    <h3>Créer un Domaine</h3>
+                    <form id="domainForm">
+                        <div class="form-group">
+                            <label>Nom du Domaine</label>
+                            <input type="text" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea name="description" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn">Créer</button>
+                    </form>
+                </div>
+                <div class="glass-card">
+                    <h3>Liste des Domaines</h3>
+                    <ul id="domainList" style="list-style:none; padding:0;"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- USERS TAB -->
+        <div id="users" class="tab-content">
+            <div class="glass-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2>Utilisateurs</h2>
+                    <button class="btn" onclick="document.getElementById('userModal').style.display='block'">+ Nouveau
+                        Staff</button>
+                </div>
+                <div id="usersTable" style="margin-top:1rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Creation Modal -->
+    <div id="userModal" class="glass-card"
+        style="display:none; position:fixed; top:20%; left:30%; width:40%; z-index:100; background:white; border:1px solid #ddd;">
+        <span onclick="document.getElementById('userModal').style.display='none'"
+            style="float:right; cursor:pointer;">&times;</span>
+        <h2>Créer Staff (Admin/Manager)</h2>
+        <form id="userForm">
+            <div class="grid-2" style="gap:1rem;">
+                <div class="form-group"><label>Prénom</label><input type="text" name="firstName" required></div>
+                <div class="form-group"><label>Nom</label><input type="text" name="lastName" required></div>
+            </div>
+            <div class="form-group"><label>Username</label><input type="text" name="username" required></div>
+            <div class="form-group"><label>Password</label><input type="password" name="password" required></div>
+            <div class="form-group"><label>Rôle</label>
+                <select name="role">
+                    <option value="GESTIONNAIRE">Gestionnaire</option>
+                    <option value="ADMINISTRATEUR">Administrateur</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Créer Utilisateur</button>
+        </form>
+    </div>
+
+    <script>
+        function openTab(tabName) {
+            // Update UI
+            document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+
+            const content = document.getElementById(tabName);
+            const btn = document.querySelector(`.tab-btn[onclick="openTab('${tabName}')"]`);
+
+            if (content) content.classList.add('active');
+            if (btn) btn.classList.add('active');
+
+            history.pushState(null, null, '#' + tabName);
+        }
+
+        function handleHashChange() {
+            const hash = location.hash.replace('#', '');
+            if (hash) openTab(hash);
+            else openTab('home');
+        }
+        window.addEventListener('hashchange', handleHashChange);
+        document.addEventListener('DOMContentLoaded', handleHashChange);
+
+        let adminData = {};
+
+        function loadAdminData() {
+            fetch('/api/dashboard/admin')
+                .then(res => res.json())
+                .then(data => {
+                    adminData = data;
+                    if (data.profile) document.getElementById('headerFirstName').textContent = data.profile.firstName;
+
+                    const stats = data.statistics;
+                    document.getElementById('globalStats').innerHTML = `
+                    <div>Utilisateurs: <strong>${stats.totalUsers || 0}</strong></div>
+                    <div>Projets: <strong>${stats.totalProjects || 0}</strong></div>
+                    <div>Budget Total: <strong>${stats.budgetByDomain ? stats.budgetByDomain.reduce((a, b) => a + b[1], 0) : 0} €</strong></div>
+                `;
+
+                    // Render Charts
+                    renderCharts(stats);
+
+                    // Render Projects
+                    renderProjects();
+
+                    // Users Table
+                    renderUsersTable(data.users);
+                });
+        }
+
+        function renderProjects() {
+            const container = document.getElementById('projectsTable');
+            if (!container) return;
+
+            container.innerHTML = `
+                <table style="width:100%; border-collapse: collapse;">
+                    <thead><tr style="background:#f8f9fa; text-align:left;"><th style="padding:10px;">Titre</th><th>Dates</th><th>Avancement</th><th>Responsable</th><th>Participants</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${(adminData.projects || []).map(p => `
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:10px;">
+                                    <strong>${p.titre_projet}</strong>
+                                    <span class="status-badge ${p.status}">${p.status.replace('_', ' ')}</span><br>
+                                    <small style="color:#666;">${p.researchDomain ? p.researchDomain.name : '-'}</small>
+                                </td>
+                                <td style="font-size:0.9rem;">
+                                    Début: ${p.date_debut || '-'}<br>
+                                    Fin: ${p.date_fin || '-'}
+                                </td>
+                                <td style="width: 150px;">
+                                    <div style="background:#eee; border-radius:10px; height:10px; width:100%;">
+                                        <div style="background:${p.niveau_avancement === 100 ? '#2ecc71' : '#3498db'}; width:${p.niveau_avancement}%; height:100%; border-radius:10px;"></div>
+                                    </div>
+                                    <div style="text-align:center; font-size:0.8rem; margin-top:2px;">${p.niveau_avancement}%</div>
+                                </td>
+                                <td>${p.responsable ? p.responsable.lastName : '-'}</td>
+                                <td style="text-align:center;">${p.participants ? p.participants.length : 0}</td>
+                                <td>
+                                    <button onclick="deleteProject(${p.project_id})" style="color:red; background:none; border:none; cursor:pointer;">Supprimer</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function deleteProject(id) {
+            if (confirm('Supprimer ce projet ?')) {
+                await fetch('/api/projects/' + id, { method: 'DELETE' });
+                loadAdminData();
+            }
+        }
+
+        function renderCharts(stats) {
+            if (window.domainChart instanceof Chart) window.domainChart.destroy();
+            if (window.statusChart instanceof Chart) window.statusChart.destroy();
+            if (window.loadChart instanceof Chart) window.loadChart.destroy();
+            if (window.evolutionChart instanceof Chart) window.evolutionChart.destroy();
+
+            const ctx1 = document.getElementById('domainChart');
+            if (ctx1) window.domainChart = new Chart(ctx1, {
+                type: 'bar', data: { labels: stats.projectsByDomain.map(d => d[0]), datasets: [{ label: 'Projets', data: stats.projectsByDomain.map(d => d[1]), backgroundColor: '#3498db' }] }
+            });
+
+            const ctx2 = document.getElementById('statusChart');
+            if (ctx2) window.statusChart = new Chart(ctx2, {
+                type: 'doughnut', data: { labels: stats.projectsByStatus.map(d => d[0]), datasets: [{ data: stats.projectsByStatus.map(d => d[1]), backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c'] }] }
+            });
+
+            const ctx3 = document.getElementById('loadChart');
+            if (ctx3) window.loadChart = new Chart(ctx3, {
+                type: 'bar', options: { indexAxis: 'y' },
+                data: { labels: stats.participantLoad.map(d => d[0] + ' ' + d[1]), datasets: [{ label: 'Projets', data: stats.participantLoad.map(d => d[2]), backgroundColor: '#e67e22' }] }
+            });
+
+            const ctx4 = document.getElementById('evolutionChart');
+            if (ctx4) window.evolutionChart = new Chart(ctx4, {
+                type: 'line', data: { labels: stats.projectsEvolution.map(d => d[0]), datasets: [{ label: 'Evolution', data: stats.projectsEvolution.map(d => d[1]), borderColor: '#9b59b6' }] }
+            });
+        }
+
+        function renderUsersTable(users) {
+            document.getElementById('usersTable').innerHTML = `
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead><tr style="background:#f8f9fa; text-align:left;"><th style="padding:10px;">User</th><th>Nom</th><th>Rôle</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${(users || []).map(u => `
+                            <tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:10px;">${u.username}</td>
+                                <td>${u.firstName} ${u.lastName}</td>
+                                <td>
+                                    <select onchange="updateUserRole('${u.username}', this.value)" style="padding:5px; border-radius:5px; border:1px solid #ddd;">
+                                        <option value="PARTICIPANT" ${u.role === 'PARTICIPANT' ? 'selected' : ''}>Participant</option>
+                                        <option value="GESTIONNAIRE" ${u.role === 'GESTIONNAIRE' ? 'selected' : ''}>Gestionnaire</option>
+                                        <option value="ADMINISTRATEUR" ${u.role === 'ADMINISTRATEUR' ? 'selected' : ''}>Administrateur</option>
+                                    </select>
+                                </td>
+                                <td><button onclick="deleteUser(${u.id})" style="color:red; background:none; border:none; cursor:pointer;">Supprimer</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function updateUserRole(username, newRole) {
+            try {
+                const res = await fetch(`/api/admin/users/${username}/role`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newRole)
+                });
+                if (res.ok) {
+                    const notification = document.createElement('div');
+                    notification.textContent = 'Rôle mis à jour avec succès';
+                    notification.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2ecc71; color:white; padding:15px; border-radius:5px; box-shadow:0 2px 10px rgba(0,0,0,0.2); animation: slideIn 0.3s;';
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 3000);
+                    loadAdminData();
+                } else {
+                    alert('Erreur lors de la mise à jour du rôle');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erreur système');
+            }
+        }
+
+        loadAdminData();
+
+        // Domains
+        function loadDomains() {
+            fetch('/api/admin/domains').then(res => res.json()).then(domains => {
+                document.getElementById('domainList').innerHTML = domains.map(d => `
+                    <li style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
+                        <div><strong>${d.name}</strong><br><small>${d.description || ''}</small></div>
+                        <button onclick="deleteDomain(${d.id})" style="color:red; background:none; border:none; cursor:pointer;">X</button>
+                    </li>
+                `).join('');
+            });
+        }
+        loadDomains();
+
+        document.getElementById('domainForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            await fetch('/api/admin/domains', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(Object.fromEntries(formData.entries()))
+            });
+            e.target.reset();
+            loadDomains();
+        });
+
+        // Create Staff
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const res = await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(Object.fromEntries(formData.entries()))
+            });
+            if (res.ok) {
+                alert('Utilisateur créé');
+                document.getElementById('userModal').style.display = 'none';
+                loadAdminData();
+            }
+            else alert('Erreur création');
+        });
+
+        async function deleteUser(id) {
+            if (confirm('Supprimer cet utilisateur ?')) {
+                await fetch('/api/admin/users/' + id, { method: 'DELETE' });
+                loadAdminData();
+            }
+        }
+
+        async function deleteDomain(id) {
+            if (confirm('Supprimer ce domaine ?')) {
+                await fetch('/api/admin/domains/' + id, { method: 'DELETE' });
+                loadDomains();
+            }
+        }
+
+        async function uploadCsv() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/projects/import', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    let msg = `Import terminé.\nSuccès: ${result.successCount}`;
+                    if (result.errors && result.errors.length > 0) {
+                        msg += `\nErreurs:\n${result.errors.join('\n')}`;
+                    }
+                    alert(msg);
+                    loadAdminData();
+                } else {
+                    alert("Erreur lors de l'import");
+                }
+            } catch (error) {
+                console.error("Error uploading CSV", error);
+                alert("Erreur réseau");
+            }
+        }
+    </script>
+</body>
+
+</html>

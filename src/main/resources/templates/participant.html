@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Espace Participant</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Dropdown Menu */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 2rem;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .project-card-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .status-badge.EN_COURS {
+            background-color: #3498db;
+        }
+
+        .status-badge.TERMINE {
+            background-color: #2ecc71;
+        }
+
+        .status-badge.SUSPENDU {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Bonjour <span id="headerFirstName">Participant</span></h1>
+
+            <div class="dropdown">
+                <button class="btn" style="background: white; color: var(--primary-color); border: 1px solid #ddd;">
+                    <i class="fas fa-user-circle"></i> Mon Compte <i class="fas fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#" onclick="openProfileModal()">Mon Profil</a>
+                    <a href="/logout" style="color: #e74c3c;"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div id="tabs">
+                <button class="tab-btn active" onclick="switchTab('myProjects')">Mes Projets</button>
+                <button class="tab-btn" onclick="switchTab('assignedProjects')">Projets Affectés</button>
+            </div>
+            <button class="btn" onclick="openCreateProjectModal()"><i class="fas fa-plus"></i> Nouveau Projet</button>
+        </div>
+
+        <!-- My Projects -->
+        <div id="myProjects" class="project-section">
+            <div id="myProjectsList" class="grid-2">
+                <!-- Loaded via JS -->
+            </div>
+        </div>
+
+        <!-- Assigned Projects -->
+        <div id="assignedProjects" class="project-section" style="display: none;">
+            <div id="assignedProjectsList" class="grid-2">
+                <!-- Loaded via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Project Modal -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProjectModal()">&times;</span>
+            <h2 id="modalTitle">Nouveau Projet</h2>
+            <form id="projectForm">
+                <input type="hidden" name="id" id="projectId">
+                <div class="form-group">
+                    <label>Titre</label>
+                    <input type="text" name="titre_projet" id="projectTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" id="projectDesc" rows="4"></textarea>
+                </div>
+                <div class="grid-2" style="gap:1rem;">
+                    <div class="form-group">
+                        <label>Date Début</label>
+                        <input type="date" name="date_debut" id="projectStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Date Fin</label>
+                        <input type="date" name="date_fin" id="projectEndDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Budget Estimé (€)</label>
+                    <input type="number" name="budget_estime" id="projectBudget" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Institution</label>
+                    <input type="text" name="institution" id="projectInstitution"
+                        placeholder="Institution partenaire (optionnel)">
+                </div>
+                <!-- Add other fields if editable by participant, e.g. domain -->
+                <div class="form-group">
+                    <label>Domaine de Recherche</label>
+                    <select name="researchDomain" id="projectDomain">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Enregistrer</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProfileModal()">&times;</span>
+            <h2>Modifier Profil</h2>
+            <form id="profileForm">
+                <div class="grid-2" style="gap: 1rem;">
+                    <div class="form-group">
+                        <label>Prénom</label>
+                        <input type="text" name="firstName" id="profileFirstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nom</label>
+                        <input type="text" name="lastName" id="profileLastName" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Domaines de Recherche</label>
+                    <select name="researchDomains" id="profileDomains" multiple
+                        style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; height: 100px;">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nouveau Mot de passe (optionnel)</label>
+                    <input type="password" name="password" placeholder="Laisser vide pour conserver">
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Mettre à jour</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let myProjectsData = [];
+        let assignedProjectsData = [];
+
+        // Tab Switching
+        function switchTab(tabName) {
+            document.getElementById('myProjects').style.display = tabName === 'myProjects' ? 'block' : 'none';
+            document.getElementById('assignedProjects').style.display = tabName === 'assignedProjects' ? 'block' : 'none';
+
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // --- APIs ---
+
+        async function loadData() {
+            try {
+                // Fetch User Projects
+                const res = await fetch('/api/dashboard/participant');
+                const data = await res.json();
+
+                // Update Greeting
+                if (data.profile) {
+                    document.getElementById('headerFirstName').textContent = data.profile.firstName;
+                }
+
+                myProjectsData = data.myProjects || [];
+                assignedProjectsData = data.assignedProjects || [];
+
+                renderMyProjects();
+                renderAssignedProjects();
+
+                // Fetch Domains for Select
+                const domainsRes = await fetch('/api/public/domains');
+                const domains = await domainsRes.json();
+                const domainSelect = document.getElementById('projectDomain');
+                domainSelect.innerHTML = '<option value="">Aucun</option>';
+                domains.forEach(d => {
+                    domainSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+                });
+
+                // Fetch Profile for modal
+                const profileRes = await fetch('/api/participants/me');
+                if (profileRes.ok) {
+                    const profile = await profileRes.json();
+                    document.getElementById('profileFirstName').value = profile.firstName;
+                    document.getElementById('profileLastName').value = profile.lastName;
+
+                    // Populate Profile Domains and Select Users
+                    const profileDomainsSelect = document.getElementById('profileDomains');
+                    profileDomainsSelect.innerHTML = '';
+                    domains.forEach(d => {
+                        const option = document.createElement('option');
+                        option.value = d.id;
+                        option.textContent = d.name;
+                        // Check if user has this domain
+                        if (profile.researchDomains && profile.researchDomains.some(ud => ud.id === d.id)) {
+                            option.selected = true;
+                        }
+                        profileDomainsSelect.appendChild(option);
+                    });
+                }
+
+            } catch (err) {
+                console.error("Error loading data", err);
+            }
+        }
+
+        function renderMyProjects() {
+            const container = document.getElementById('myProjectsList');
+            if (myProjectsData.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Aucun projet déclaré.</p>';
+                return;
+            }
+
+            container.innerHTML = myProjectsData.map(p => `
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>${p.titre_projet}</h3>
+                        <span class="status-badge ${p.status}">${p.status.replace('_', ' ')}</span>
+                    </div>
+                    <p>${p.description || 'Pas de description'}</p>
+                     <div style="font-size: 0.9em; color: #666; margin-bottom: 1rem;">
+                        Domaine: ${p.researchDomain ? p.researchDomain.name : 'Non défini'} | Institution: ${p.institution || '-'}
+                    </div>
+                    <div style="font-size: 0.8em; color: #888; margin-bottom: 0.5rem;">
+                         Budget: ${p.budget_estime ? p.budget_estime + ' €' : '-'} | Avancement: ${p.niveau_avancement}%
+                    </div>
+                    <div class="project-card-actions">
+                        <button class="btn" style="padding: 5px 10px; font-size: 0.8rem;" onclick="openEditProjectModal(${p.project_id})">Modifier</button>
+                        <button class="btn" style="padding: 5px 10px; font-size: 0.8rem; background: #e74c3c;" onclick="deleteProject(${p.project_id})">Supprimer</button>
+                    </div>
+                </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAssignedProjects() {
+            const container = document.getElementById('assignedProjectsList');
+            if (assignedProjectsData.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Aucun projet affecté.</p>';
+                return;
+            }
+
+            container.innerHTML = assignedProjectsData.map(p => `
+                <div class="glass-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>${p.titre_projet}</h3>
+                        <span class="status-badge ${p.status}">${p.status.replace('_', ' ')}</span>
+                    </div>
+                    <p>${p.description || 'Pas de description'}</p>
+                     <div style="font-size: 0.9em; color: #666; margin-bottom: 1rem;">
+                        Domaine: ${p.researchDomain ? p.researchDomain.name : 'Non défini'} | Responsable: ${p.responsable ? p.responsable.lastName : '?'} | Institution: ${p.institution || '-'}
+                    </div>
+                    <div style="font-size: 0.8em; color: #888; margin-bottom: 0.5rem;">
+                         Budget: ${p.budget_estime ? p.budget_estime + ' €' : '-'} | Avancement: ${p.niveau_avancement}%
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- Modals ---
+
+        const projectModal = document.getElementById('projectModal');
+        const profileModal = document.getElementById('profileModal');
+
+        function openCreateProjectModal() {
+            document.getElementById('projectForm').reset();
+            document.getElementById('projectId').value = '';
+            document.getElementById('modalTitle').textContent = 'Nouveau Projet';
+            projectModal.style.display = 'block';
+        }
+
+        function openEditProjectModal(id) {
+            const p = myProjectsData.find(proj => proj.project_id === id);
+            if (!p) return;
+
+            document.getElementById('projectId').value = p.project_id;
+            document.getElementById('projectTitle').value = p.titre_projet;
+            document.getElementById('projectDesc').value = p.description;
+            document.getElementById('projectStartDate').value = p.date_debut;
+            document.getElementById('projectEndDate').value = p.date_fin;
+            document.getElementById('projectBudget').value = p.budget_estime;
+            document.getElementById('projectInstitution').value = p.institution || '';
+
+            if (p.researchDomain) {
+                document.getElementById('projectDomain').value = p.researchDomain.id;
+            }
+            document.getElementById('modalTitle').textContent = 'Modifier Projet';
+            projectModal.style.display = 'block';
+        }
+
+        function closeProjectModal() {
+            projectModal.style.display = 'none';
+        }
+
+        function openProfileModal() {
+            profileModal.style.display = 'block';
+        }
+
+        function closeProfileModal() {
+            profileModal.style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            if (event.target == projectModal) closeProjectModal();
+            if (event.target == profileModal) closeProfileModal();
+        }
+
+        // --- Actions ---
+
+        document.getElementById('projectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            const id = data.id;
+
+            // Prepare payload
+            const payload = {
+                titre_projet: data.titre_projet,
+                description: data.description,
+                date_debut: data.date_debut,
+                date_fin: data.date_fin,
+                budget_estime: data.budget_estime,
+                institution: data.institution
+            };
+
+            if (data.date_debut && data.date_fin) {
+                if (new Date(data.date_fin) < new Date(data.date_debut)) {
+                    alert("La date de fin ne peut pas être antérieure à la date de début.");
+                    return;
+                }
+            }
+            if (data.researchDomain) {
+                payload.researchDomain = { id: data.researchDomain };
+            }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/projects/${id}` : '/api/projects';
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    closeProjectModal();
+                    loadData(); // Reload
+                } else {
+                    alert('Erreur lors de la sauvegarde');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        async function deleteProject(id) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) return;
+
+            try {
+                const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    loadData();
+                } else {
+                    alert('Impossible de supprimer le projet');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const profileDomainsSelect = document.getElementById('profileDomains');
+            const selectedDomains = Array.from(profileDomainsSelect.selectedOptions).map(option => ({ id: option.value }));
+
+            const payload = {
+                firstName: document.getElementById('profileFirstName').value,
+                lastName: document.getElementById('profileLastName').value,
+                researchDomains: selectedDomains
+            };
+
+            const password = e.target.password.value;
+            // Handle password update separately if needed or add to payload if supported by backend API for this endpoint
+
+            try {
+                const res = await fetch('/api/participants/me', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert("Profil mis à jour");
+                    closeProfileModal();
+                    loadData();
+                } else {
+                    alert("Erreur mise à jour profil");
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        // Init
+        loadData();
+
+    </script>
+</body>
+
+</html>
